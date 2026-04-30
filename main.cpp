@@ -2,10 +2,8 @@
 #include <fstream>
 #include <cstring>
 
-// Color enum for Red-Black tree nodes
 enum Color { RED, BLACK };
 
-// Node structure for Red-Black Tree
 struct Node {
     int value;
     Color color;
@@ -17,17 +15,16 @@ struct Node {
     Node(int val) : value(val), color(RED), parent(nullptr), left(nullptr), right(nullptr) {}
 };
 
-// Red-Black Tree class
 class RedBlackTree {
 private:
     Node* root;
-    Node* Tnil;  // Sentinel node for NULL leaves
+    Node* Tnil;  
 
     // Helper functions
     void leftRotate(Node* x);
     void rightRotate(Node* x);
     void insertFixup(Node* z);
-    void inOrderTraversal(Node* node);
+    void printDetailed(Node* node);
     void printTree(Node* node, int indent);
 
 public:
@@ -46,7 +43,7 @@ RedBlackTree::RedBlackTree() {
     root = Tnil;
 }
 
-// Left rotation
+// This is the left rotation
 void RedBlackTree::leftRotate(Node* x) {
     Node* y = x->right;
     x->right = y->left;
@@ -69,7 +66,7 @@ void RedBlackTree::leftRotate(Node* x) {
     x->parent = y;
 }
 
-// Right rotation
+// This is the right rotation
 void RedBlackTree::rightRotate(Node* x) {
     Node* y = x->left;
     x->left = y->right;
@@ -92,7 +89,7 @@ void RedBlackTree::rightRotate(Node* x) {
     x->parent = y;
 }
 
-// Insert a value into the tree
+// This is to insert a value into the tree
 void RedBlackTree::insert(int value) {
     Node* z = new Node(value);
     z->left = Tnil;
@@ -101,7 +98,6 @@ void RedBlackTree::insert(int value) {
     Node* y = Tnil;
     Node* x = root;
     
-    // Standard BST insertion
     while (x != Tnil) {
         y = x;
         if (z->value < x->value) {
@@ -121,11 +117,11 @@ void RedBlackTree::insert(int value) {
         y->right = z;
     }
     
-    // Fix Red-Black tree properties
+    // This is to fix Red-Black tree properties
     insertFixup(z);
 }
 
-// Insert fixup algorithm
+// This is the insert fixup algorithm
 void RedBlackTree::insertFixup(Node* z) {
     while (z->parent->color == RED) {
         if (z->parent == z->parent->parent->left) {
@@ -151,7 +147,7 @@ void RedBlackTree::insertFixup(Node* z) {
                 rightRotate(z->parent->parent);
             }
         } else {
-            // Case: Parent is right child of grandparent
+            // This is for the case where the parent is right child of grandparent
             Node* uncle = z->parent->parent->left;
             
             if (uncle->color == RED) {
@@ -175,7 +171,7 @@ void RedBlackTree::insertFixup(Node* z) {
         }
     }
     
-    // Ensure root is always black
+    // This is to ensure root is always black
     root->color = BLACK;
 }
 
@@ -200,18 +196,51 @@ void RedBlackTree::readFromFile(const char* filename) {
     file.close();
 }
 
-// Print tree (in-order)
+// Print tree with value, color, and parent
 void RedBlackTree::print() {
-    inOrderTraversal(root);
+    std::cout << "=== Red-Black Tree ===" << std::endl;
+    std::cout << "Format: Value(Color) <- ParentValue" << std::endl;
+   
+    printDetailed(root);
     std::cout << std::endl;
+    
+    // Also print visual tree
+    std::cout << "\n=== Visual Tree ===" << std::endl;
+    printTree(root, 0);
 }
 
-void RedBlackTree::inOrderTraversal(Node* node) {
+void RedBlackTree::printDetailed(Node* node) {
     if (node == Tnil) return;
     
-    inOrderTraversal(node->left);
-    std::cout << node->value << "(" << (node->color == RED ? "R" : "B") << ") ";
-    inOrderTraversal(node->right);
+    printDetailed(node->left);
+    
+    // Print value, color, and parent
+    std::cout << node->value << "(" << (node->color == RED ? "R" : "B") << ")";
+    
+    // Print parent
+    if (node->parent != Tnil) {
+        std::cout << " <- " << node->parent->value;
+    } else {
+        std::cout << " <- (null)";
+    }
+    std::cout << std::endl;
+    
+    printDetailed(node->right);
+}
+
+// Visual tree representation
+void RedBlackTree::printTree(Node* node, int indent) {
+    if (node == Tnil) return;
+    
+    printTree(node->right, indent + 4);
+    
+    for (int i = 0; i < indent; i++) {
+        std::cout << " ";
+    }
+    
+    std::cout << node->value << "(" << (node->color == RED ? "R" : "B") << ")" << std::endl;
+    
+    printTree(node->left, indent + 4);
 }
 
 // Main function
