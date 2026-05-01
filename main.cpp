@@ -2,6 +2,8 @@
 #include <fstream>
 #include <cstring>
 
+using namespace std;
+
 enum Color { RED, BLACK };
 
 struct Node {
@@ -177,9 +179,9 @@ void RedBlackTree::insertFixup(Node* z) {
 
 // Read from file
 void RedBlackTree::readFromFile(const char* filename) {
-    std::ifstream file(filename);
+    ifstream file(filename);
     if (!file.is_open()) {
-        std::cout << "Error: Could not open file " << filename << std::endl;
+        cout << "Error: Could not open file " << filename << endl;
         return;
     }
     
@@ -198,14 +200,14 @@ void RedBlackTree::readFromFile(const char* filename) {
 
 // Print tree with value, color, and parent
 void RedBlackTree::print() {
-    std::cout << "=== Red-Black Tree ===" << std::endl;
-    std::cout << "Format: Value(Color) <- ParentValue" << std::endl;
+    cout << "=== Red-Black Tree ===" << endl;
+    cout << "Format: Value(Color) <- ParentValue" << endl;
    
     printDetailed(root);
-    std::cout << std::endl;
+    cout << endl;
     
     // Also print visual tree
-    std::cout << "\n=== Visual Tree ===" << std::endl;
+    cout << "\n=== Visual Tree ===" << endl;
     printTree(root, 0);
 }
 
@@ -215,15 +217,15 @@ void RedBlackTree::printDetailed(Node* node) {
     printDetailed(node->left);
     
     // Print value, color, and parent
-    std::cout << node->value << "(" << (node->color == RED ? "R" : "B") << ")";
+    cout << node->value << "(" << (node->color == RED ? "R" : "B") << ")";
     
     // Print parent
     if (node->parent != Tnil) {
-        std::cout << " <- " << node->parent->value;
+        cout << " <- " << node->parent->value;
     } else {
-        std::cout << " <- (null)";
+        cout << " <- (null)";
     }
-    std::cout << std::endl;
+    cout << endl;
     
     printDetailed(node->right);
 }
@@ -235,27 +237,57 @@ void RedBlackTree::printTree(Node* node, int indent) {
     printTree(node->right, indent + 4);
     
     for (int i = 0; i < indent; i++) {
-        std::cout << " ";
+        cout << " ";
     }
     
-    std::cout << node->value << "(" << (node->color == RED ? "R" : "B") << ")" << std::endl;
+    cout << node->value << "(" << (node->color == RED ? "R" : "B") << ")" << endl;
     
     printTree(node->left, indent + 4);
 }
 
-// Main function
+// Main function with menu
 int main() {
     RedBlackTree tree;
+    int choice;
+    int num;
+    char filename[100];
     
-    // Add some numbers
-    tree.insert(10);
-    tree.insert(20);
-    tree.insert(30);
-    tree.insert(15);
-    tree.insert(25);
-    
-    std::cout << "In-order traversal: ";
-    tree.print();
+    do {
+        cout << "Red-Black Tree Menu" << endl;
+        cout << "1. Add a number" << endl;
+        cout << "2. Read from file" << endl;
+        cout << "3. Print tree" << endl;
+        cout << "4. Exit" << endl;
+        cout << "Enter choice: ";
+        cin >> choice;
+        
+        switch (choice) {
+            case 1:
+                cout << "Enter number to add (1-999): ";
+                cin >> num;
+                if (num >= 1 && num <= 999) {
+                    tree.insert(num);
+                    cout << "Added " << num << " to tree." << endl;
+                } else {
+                    cout << "Invalid number. Use 1-999." << endl;
+                }
+                break;
+            case 2:
+                cout << "Enter filename: ";
+                cin >> filename;
+                tree.readFromFile(filename);
+                cout << "File read complete." << endl;
+                break;
+            case 3:
+                tree.print();
+                break;
+            case 4:
+                cout << "Goodbye!" << endl;
+                break;
+            default:
+                cout << "Invalid choice." << endl;
+        }
+    } while (choice != 4);
     
     return 0;
 }
