@@ -1,3 +1,8 @@
+//Yashwanth Narayan Shravanaboyina Besta
+//4/1/2026
+//This is a C++ implementation of a Red-Black Tree with a menu-driven interface. The program allows users to insert numbers, read from a file, print the tree, search for values, and show tree statistics. The tree maintains the properties of a Red-Black Tree to ensure balanced operations.
+
+
 #include <iostream>
 #include <fstream>
 #include <cstring>
@@ -13,7 +18,6 @@ struct Node {
     Node* left;
     Node* right;
 
-    // Constructor
     Node(int val) : value(val), color(RED), parent(nullptr), left(nullptr), right(nullptr) {}
 };
 
@@ -22,7 +26,6 @@ private:
     Node* root;
     Node* Tnil;  
 
-    // Helper functions
     void leftRotate(Node* x);
     void rightRotate(Node* x);
     void insertFixup(Node* z);
