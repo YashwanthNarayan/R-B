@@ -28,12 +28,17 @@ private:
     void insertFixup(Node* z);
     void printDetailed(Node* node);
     void printTree(Node* node, int indent);
+    bool search(Node* node, int value);
+    int countNodes(Node* node);
+    int getHeight(Node* node);
 
 public:
     RedBlackTree();
     void insert(int value);
     void readFromFile(const char* filename);
     void print();
+    bool find(int value);
+    void showStats();
 };
 
 // Constructor
@@ -200,14 +205,14 @@ void RedBlackTree::readFromFile(const char* filename) {
 
 // Print tree with value, color, and parent
 void RedBlackTree::print() {
-    cout << "=== Red-Black Tree ===" << endl;
+    cout << "Red-Black Tree " << endl;
     cout << "Format: Value(Color) <- ParentValue" << endl;
    
     printDetailed(root);
     cout << endl;
     
     // Also print visual tree
-    cout << "\n=== Visual Tree ===" << endl;
+    cout << "Visual Tree" << endl;
     printTree(root, 0);
 }
 
@@ -245,7 +250,52 @@ void RedBlackTree::printTree(Node* node, int indent) {
     printTree(node->left, indent + 4);
 }
 
-// Main function with menu
+// Search function to find a value in tree
+bool RedBlackTree::search(Node* node, int value) {
+    if (node == Tnil) return false;
+    
+    if (value == node->value) {
+        return true;
+    } else if (value < node->value) {
+        return search(node->left, value);
+    } else {
+        return search(node->right, value);
+    }
+}
+
+// Count all nodes in the tree
+int RedBlackTree::countNodes(Node* node) {
+    if (node == Tnil) return 0;
+    
+    return 1 + countNodes(node->left) + countNodes(node->right);
+}
+
+// Get height of the tree
+int RedBlackTree::getHeight(Node* node) {
+    if (node == Tnil) return 0;
+    
+    int leftHeight = getHeight(node->left);
+    int rightHeight = getHeight(node->right);
+    
+    return 1 + (leftHeight > rightHeight ? leftHeight : rightHeight);
+}
+
+// Find a value in the tree
+bool RedBlackTree::find(int value) {
+    return search(root, value);
+}
+
+// Show tree statistics
+void RedBlackTree::showStats() {
+    int nodeCount = countNodes(root);
+    int height = getHeight(root);
+    
+    cout << "Tree Statistics" << endl;
+    cout << "Total nodes: " << nodeCount << endl;
+    cout << "Tree height: " << height << endl;
+}
+
+// This is the main function with menu
 int main() {
     RedBlackTree tree;
     int choice;
@@ -257,7 +307,9 @@ int main() {
         cout << "1. Add a number" << endl;
         cout << "2. Read from file" << endl;
         cout << "3. Print tree" << endl;
-        cout << "4. Exit" << endl;
+        cout << "4. Search for a number" << endl;
+        cout << "5. Show tree statistics" << endl;
+        cout << "6. Exit" << endl;
         cout << "Enter choice: ";
         cin >> choice;
         
@@ -282,12 +334,24 @@ int main() {
                 tree.print();
                 break;
             case 4:
+                cout << "Enter number to search (1-999): ";
+                cin >> num;
+                if (tree.find(num)) {
+                    cout << num << " found in tree!" << endl;
+                } else {
+                    cout << num << " not found in tree." << endl;
+                }
+                break;
+            case 5:
+                tree.showStats();
+                break;
+            case 6:
                 cout << "Goodbye!" << endl;
                 break;
             default:
                 cout << "Invalid choice." << endl;
         }
-    } while (choice != 4);
+    } while (choice != 6);
     
     return 0;
 }
