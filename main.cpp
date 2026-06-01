@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <cstdlib>
 
 using namespace std;
 
@@ -29,6 +30,10 @@ private:
     void leftRotate(Node* x);
     void rightRotate(Node* x);
     void insertFixup(Node* z);
+    void transplant(Node* u, Node* v);
+    Node* minimum(Node* node);
+    Node* searchNode(Node* node, int value);
+    void deleteFixup(Node* x);
     void printDetailed(Node* node);
     void printTree(Node* node, int indent);
     bool search(Node* node, int value);
@@ -38,6 +43,7 @@ private:
 public:
     RedBlackTree();
     void insert(int value);
+    bool remove(int value);
     void readFromFile(const char* filename);
     void print();
     bool find(int value);
@@ -49,7 +55,9 @@ RedBlackTree::RedBlackTree() {
     // Create sentinel Tnil node (black leaf)
     Tnil = new Node(0);
     Tnil->color = BLACK;
-    Tnil->left = Tnil->right = Tnil->parent = nullptr;
+    Tnil->left = Tnil;
+    Tnil->right = Tnil;
+    Tnil->parent = Tnil;
     root = Tnil;
 }
 
@@ -185,6 +193,150 @@ void RedBlackTree::insertFixup(Node* z) {
     root->color = BLACK;
 }
 
+// Replace one subtree with another
+void RedBlackTree::transplant(Node* u, Node* v) {
+    if (u->parent == Tnil) {
+        root = v;
+    } else if (u == u->parent->left) {
+        u->parent->left = v;
+    } else {
+        u->parent->right = v;
+    }
+
+    v->parent = u->parent;
+}
+
+// Find the smallest node in a subtree
+Node* RedBlackTree::minimum(Node* node) {
+    while (node->left != Tnil) {
+        node = node->left;
+    }
+
+    return node;
+}
+
+// Return the node that stores value, or Tnil if it is not in the tree
+Node* RedBlackTree::searchNode(Node* node, int value) {
+    while (node != Tnil && value != node->value) {
+        if (value < node->value) {
+            node = node->left;
+        } else {
+            node = node->right;
+        }
+    }
+
+    return node;
+}
+
+// Restore Red-Black tree properties after deleting a black node
+void RedBlackTree::deleteFixup(Node* x) {
+    while (x != root && x->color == BLACK) {
+        if (x == x->parent->left) {
+            Node* sibling = x->parent->right;
+
+            if (sibling->color == RED) {
+                sibling->color = BLACK;
+                x->parent->color = RED;
+                leftRotate(x->parent);
+                sibling = x->parent->right;
+            }
+
+            if (sibling->left->color == BLACK && sibling->right->color == BLACK) {
+                sibling->color = RED;
+                x = x->parent;
+            } else {
+                if (sibling->right->color == BLACK) {
+                    sibling->left->color = BLACK;
+                    sibling->color = RED;
+                    rightRotate(sibling);
+                    sibling = x->parent->right;
+                }
+
+                sibling->color = x->parent->color;
+                x->parent->color = BLACK;
+                sibling->right->color = BLACK;
+                leftRotate(x->parent);
+                x = root;
+            }
+        } else {
+            Node* sibling = x->parent->left;
+
+            if (sibling->color == RED) {
+                sibling->color = BLACK;
+                x->parent->color = RED;
+                rightRotate(x->parent);
+                sibling = x->parent->left;
+            }
+
+            if (sibling->right->color == BLACK && sibling->left->color == BLACK) {
+                sibling->color = RED;
+                x = x->parent;
+            } else {
+                if (sibling->left->color == BLACK) {
+                    sibling->right->color = BLACK;
+                    sibling->color = RED;
+                    leftRotate(sibling);
+                    sibling = x->parent->left;
+                }
+
+                sibling->color = x->parent->color;
+                x->parent->color = BLACK;
+                sibling->left->color = BLACK;
+                rightRotate(x->parent);
+                x = root;
+            }
+        }
+    }
+
+    x->color = BLACK;
+}
+
+// Remove a value from the tree
+bool RedBlackTree::remove(int value) {
+    Node* z = searchNode(root, value);
+
+    if (z == Tnil) {
+        return false;
+    }
+
+    Node* y = z;
+    Node* x;
+    Color yOriginalColor = y->color;
+
+    if (z->left == Tnil) {
+        x = z->right;
+        transplant(z, z->right);
+    } else if (z->right == Tnil) {
+        x = z->left;
+        transplant(z, z->left);
+    } else {
+        y = minimum(z->right);
+        yOriginalColor = y->color;
+        x = y->right;
+
+        if (y->parent == z) {
+            x->parent = y;
+        } else {
+            transplant(y, y->right);
+            y->right = z->right;
+            y->right->parent = y;
+        }
+
+        transplant(z, y);
+        y->left = z->left;
+        y->left->parent = y;
+        y->color = z->color;
+    }
+
+    delete z;
+
+    if (yOriginalColor == BLACK) {
+        deleteFixup(x);
+    }
+
+    return true;
+}
+
 // Read from file
 void RedBlackTree::readFromFile(const char* filename) {
     ifstream file(filename);
@@ -311,8 +463,9 @@ int main() {
         cout << "2. Read from file" << endl;
         cout << "3. Print tree" << endl;
         cout << "4. Search for a number" << endl;
-        cout << "5. Show tree statistics" << endl;
-        cout << "6. Exit" << endl;
+        cout << "5. Remove a number" << endl;
+        cout << "6. Show tree statistics" << endl;
+        cout << "7. Exit" << endl;
         cout << "Enter choice: ";
         cin >> choice;
         
@@ -346,15 +499,24 @@ int main() {
                 }
                 break;
             case 5:
-                tree.showStats();
+                cout << "Enter number to remove (1-999): ";
+                cin >> num;
+                if (tree.remove(num)) {
+                    cout << "Removed " << num << " from tree." << endl;
+                } else {
+                    cout << num << " not found in tree." << endl;
+                }
                 break;
             case 6:
+                tree.showStats();
+                break;
+            case 7:
                 cout << "Goodbye!" << endl;
                 break;
             default:
                 cout << "Invalid choice." << endl;
         }
-    } while (choice != 6);
+    } while (choice != 7);
     
     return 0;
 }
